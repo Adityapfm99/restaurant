@@ -68,11 +68,13 @@ export class profilesVm {
 
 export class CreateRecommendationV2Dto {
 
-  @ApiProperty({ type: () => keyValuesVm })
-  key_values: keyValuesVm;
+  // @ApiProperty({ type: () => keyValuesVm })
+  // key_values: keyValuesVm;
 
-  @ApiProperty({ type: () => [profilesVm] })
-  profiles: profilesVm;
+  // @ApiProperty({ type: () => [profilesVm] })
+  // profiles: profilesVm;
 
+  @ApiProperty()
+  restaurantId: string;
 }
 

@@ -8,12 +8,16 @@ import { CreateRecommendationDto, CreateRecommendationV2Dto } from "src/dto/crea
 import { IRecommendation } from "src/interface/recommendation.interface";
 import { Model, now } from "mongoose";
 import axios from "axios";
+import { InjectQueue } from "@nestjs/bull";
+import { Queue } from "bull";
 
 @Injectable()
 export class RecommendationService {
   constructor(
     @InjectModel("Recommendation")
-    private recommendationModel: Model<IRecommendation>
+    private recommendationModel: Model<IRecommendation>,
+    @InjectQueue('recommendation-queue')
+    private recommendationQueue: Queue
   ) {}
 
   async createRecommendation(
@@ -41,74 +45,75 @@ export class RecommendationService {
 
   async createRecommendationV2(
     createRecommendationV2Dto: CreateRecommendationV2Dto
-  ): Promise<IRecommendation> {
-    let newRecommendation;
-    let priceAndPricingType;
-    let res;
-    let names;
-    let location;
-    const cuisineId = createRecommendationV2Dto.key_values ? createRecommendationV2Dto.key_values.cuisineId : 0;
-    const restaurantId = createRecommendationV2Dto.profiles[0] ? createRecommendationV2Dto.profiles[0].key_values.restaurantId: 0;
-    const clevertapId = createRecommendationV2Dto.profiles[0] ? createRecommendationV2Dto.profiles[0].objectId : null;
-    const userId = createRecommendationV2Dto.profiles[0] ? createRecommendationV2Dto.profiles[0].key_values.clevertapId : 0;
+  ): Promise<void> {
+    // let newRecommendation;
+    // let priceAndPricingType;
+    // let res;
+    // let names;
+    // let location;
+    // const cuisineId = createRecommendationV2Dto.key_values ? createRecommendationV2Dto.key_values.cuisineId : 0;
+    // const restaurantId = createRecommendationV2Dto.profiles[0] ? createRecommendationV2Dto.profiles[0].key_values.restaurantId: 0;
+    // const clevertapId = createRecommendationV2Dto.profiles[0] ? createRecommendationV2Dto.profiles[0].objectId : null;
+    // const userId = createRecommendationV2Dto.profiles[0] ? createRecommendationV2Dto.profiles[0].key_values.clevertapId : 0;
 
-    let name = createRecommendationV2Dto.profiles[0] ? createRecommendationV2Dto.profiles[0].key_values.name : null;
-    let reviewScore = createRecommendationV2Dto.key_values ? createRecommendationV2Dto.key_values.reviewsScore : null;
-    let reviewCount = createRecommendationV2Dto.key_values ? createRecommendationV2Dto.key_values.reviewsCount : null;
-    let imageCoverUrl = null;
-    let acceptVoucher = false;
-    let cuisine = createRecommendationV2Dto.key_values ? createRecommendationV2Dto.key_values.cuisine : null;
+    // let name = createRecommendationV2Dto.profiles[0] ? createRecommendationV2Dto.profiles[0].key_values.name : null;
+    // let reviewScore = createRecommendationV2Dto.key_values ? createRecommendationV2Dto.key_values.reviewsScore : null;
+    // let reviewCount = createRecommendationV2Dto.key_values ? createRecommendationV2Dto.key_values.reviewsCount : null;
+    // let imageCoverUrl = null;
+    // let acceptVoucher = false;
+    // let cuisine = createRecommendationV2Dto.key_values ? createRecommendationV2Dto.key_values.cuisine : null;
 
-    const url = '';
-    const response =  await axios.get(url);
-    if (response.status === 200) {
-      res = response.data;
-      priceAndPricingType = res.data.attributes.price_and_pricing_type || null;
-      acceptVoucher  = res.data.attributes.accept_voucher || null;
-      names = res.data.attributes.names || null;
-      location = res.data.attributes.primary_location || null;
-    }
-    if (!reviewCount) {
-      reviewCount = res.data.attributes.reviews_count;
-    }
-    if (!name) {
-      name = res.data.attributes.name;
-    }
-    if (!reviewScore) {
-      reviewScore = res.data.attributes.reviews_score;
-    }
-    if (!names) {
-      names = res.data.attributes.names;
-    }
-    if (!location) {
-      location = res.data.attributes.primary_location;
-    }
-    if (!imageCoverUrl) {
-      imageCoverUrl = res.data.attributes.image_cover_url;
-    }
-    if (!cuisine) {
-      cuisine = res.data.attributes.primary_cuisine;
-    }
-    if (restaurantId && response.status === 200) {
-      newRecommendation = await this.recommendationModel.create({
-        cuisine_id: cuisineId,
-        primary_cuisine: cuisine,
-        restaurant_id: restaurantId,
-        clevertap_id: clevertapId,
-        user_id: userId,
-        names: names,
-        name: name,
-        reviews_count: reviewCount,
-        reviews_score: reviewScore,
-        primary_location: location,
-        created_date: now(),
-        updated_date: now(),
-        accept_voucher: acceptVoucher,
-        price_and_pricing_type: priceAndPricingType,
-        image_cover_url: imageCoverUrl,
-      });
-    }
-    return newRecommendation;
+    // const url = '';
+    // const response =  await axios.get(url);
+    // if (response.status === 200) {
+    //   res = response.data;
+    //   priceAndPricingType = res.data.attributes.price_and_pricing_type || null;
+    //   acceptVoucher  = res.data.attributes.accept_voucher || null;
+    //   names = res.data.attributes.names || null;
+    //   location = res.data.attributes.primary_location || null;
+    // }
+    // if (!reviewCount) {
+    //   reviewCount = res.data.attributes.reviews_count;
+    // }
+    // if (!name) {
+    //   name = res.data.attributes.name;
+    // }
+    // if (!reviewScore) {
+    //   reviewScore = res.data.attributes.reviews_score;
+    // }
+    // if (!names) {
+    //   names = res.data.attributes.names;
+    // }
+    // if (!location) {
+    //   location = res.data.attributes.primary_location;
+    // }
+    // if (!imageCoverUrl) {
+    //   imageCoverUrl = res.data.attributes.image_cover_url;
+    // }
+    // if (!cuisine) {
+    //   cuisine = res.data.attributes.primary_cuisine;
+    // }
+    // if (restaurantId && response.status === 200) {
+    //   newRecommendation = await this.recommendationModel.create({
+    //     cuisine_id: cuisineId,
+    //     primary_cuisine: cuisine,
+    //     restaurant_id: restaurantId,
+    //     clevertap_id: clevertapId,
+    //     user_id: userId,
+    //     names: names,
+    //     name: name,
+    //     reviews_count: reviewCount,
+    //     reviews_score: reviewScore,
+    //     primary_location: location,
+    //     created_date: now(),
+    //     updated_date: now(),
+    //     accept_voucher: acceptVoucher,
+    //     price_and_pricing_type: priceAndPricingType,
+    //     image_cover_url: imageCoverUrl,
+    //   });
+    // }
+    // return newRecommendation;
+    this.recommendationQueue.add('recommendation', createRecommendationV2Dto);
   }
 
   async getClevertapId(
